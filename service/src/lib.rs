@@ -2,23 +2,9 @@ use opentelemetry::trace::TracerProvider as _;
 use tracing_subscriber::{fmt::format::FmtSpan, prelude::*};
 use serde::{Serialize, Deserialize};
 
+mod models;
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct HistoryEntry {
-    pub id: i64,
-    pub remote_addr: String,
-    pub uri: String,
-    pub method: String,
-    pub params: bool,
-    pub status: i64,
-    pub size: i64,
-    pub timestamp: String,
-    pub raw: Vec<u8>,
-    pub ssl: bool,
-    pub response: Vec<u8>,
-    pub response_time: String,
-    pub content_length: i64,
-}
+pub use crate::models::history::HistoryEntry;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum OrderByEnum {
@@ -34,6 +20,7 @@ impl OrderByEnum {
         }.to_string()
     }
 }
+
 #[tarpc::service]
 pub trait HistoryService {
     async fn get_entry(id: usize) -> Option<HistoryEntry>;
