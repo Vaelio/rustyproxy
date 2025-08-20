@@ -22,10 +22,10 @@ impl OrderByEnum {
 }
 
 #[tarpc::service]
-pub trait HistoryService {
-    async fn get_entry(id: usize) -> Option<HistoryEntry>;
-    async fn list_entries(page: usize, page_size: usize, order: OrderByEnum) -> Vec<HistoryEntry>;
-    async fn count_entries() -> usize;
+pub trait ApiService {
+    async fn get_history_entry(id: usize) -> Option<HistoryEntry>;
+    async fn list_history_entries(page: usize, page_size: usize, order: OrderByEnum) -> Vec<HistoryEntry>;
+    async fn count_history_entries() -> usize;
 }
 
 /// Initializes an OpenTelemetry tracing subscriber with a OTLP backend.

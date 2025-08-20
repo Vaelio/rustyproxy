@@ -1,5 +1,5 @@
 use rusqlite::Connection;
-use service::{HistoryEntry, HistoryService, OrderByEnum};
+use service::{HistoryEntry, ApiService, OrderByEnum};
 use tarpc::{
     context,
     server::{self, incoming::Incoming, Channel},
@@ -16,8 +16,8 @@ struct RpcServer {
     conn: Arc<Mutex<Connection>>,
 }
 
-impl HistoryService for RpcServer {
-    async fn get_entry(self, _: context::Context, id: usize) -> Option<HistoryEntry> {
+impl ApiService for RpcServer {
+    async fn get_history_entry(self, _: context::Context, id: usize) -> Option<HistoryEntry> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare("SELECT * FROM history WHERE id == ?").unwrap();
         let row = stmt.query_row([id], |row| {
@@ -43,7 +43,7 @@ impl HistoryService for RpcServer {
         row.ok()
     }
 
-    async fn list_entries(self, _: context::Context, page: usize, page_size: usize, order: OrderByEnum) -> Vec<HistoryEntry> {
+    async fn list_history_entries(self, _: context::Context, page: usize, page_size: usize, order: OrderByEnum) -> Vec<HistoryEntry> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = match conn.prepare(&format!("SELECT * FROM history ORDER BY ID {} LIMIT ? OFFSET ?", order.to_string())) {
             Ok(v) => v,
@@ -74,7 +74,7 @@ impl HistoryService for RpcServer {
             .collect::<Vec<HistoryEntry>>()
     }
 
-    async fn count_entries(self, _: context::Context) -> usize {
+    async fn count_history_entries(self, _: context::Context) -> usize {
         let conn = self.conn.lock().unwrap();
         let mut stmt = match conn.prepare("SELECT COUNT(*) FROM history") {
             Ok(v) => v,
