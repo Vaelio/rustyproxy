@@ -1,5 +1,5 @@
 use rusqlite::Connection;
-use service::{HistoryEntry, ApiService, OrderByEnum};
+use service::{HistoryEntry, InspectorEntry, ApiService, OrderByEnum};
 use tarpc::{
     context,
     server::{self, incoming::Incoming, Channel},
@@ -77,6 +77,61 @@ impl ApiService for RpcServer {
     async fn count_history_entries(self, _: context::Context) -> usize {
         let conn = self.conn.lock().unwrap();
         let mut stmt = match conn.prepare("SELECT COUNT(*) FROM history") {
+            Ok(v) => v,
+            Err(e) => panic!("ERROR: {:#?}", e),
+        };
+        stmt.query_one([], |row|{
+            let ret: usize = row.get(0).unwrap();
+            Ok(ret)
+        }).unwrap()
+    }
+
+    async fn get_inspector_entry(self, _: context::Context, id: usize) -> Option<InspectorEntry> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare("SELECT * FROM inspectors WHERE id == ?").unwrap();
+        let row = stmt.query_row([id], |row| {
+            Ok(InspectorEntry{
+                id: row.get(0).unwrap(),
+                request: row.get(1).unwrap(),
+                response: row.get(2).unwrap(),
+                modified_request: row.get(3).unwrap(),
+                new_response: row.get(4).unwrap(),
+                ssl: matches!(row.get(5).unwrap(), 1),
+                target: row.get(6).unwrap()
+            })
+        });
+
+        row.ok()
+    }
+
+    async fn list_inspector_entries(self, _: context::Context, page: usize, page_size: usize, order: OrderByEnum) -> Vec<InspectorEntry> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = match conn.prepare(&format!("SELECT * FROM inspectors ORDER BY ID {} LIMIT ? OFFSET ?", order.to_string())) {
+            Ok(v) => v,
+            Err(e) => panic!("ERROR: {:#?}", e),
+        };
+
+        let rows = stmt.query_map([page_size, page], |row| {
+
+            Ok(InspectorEntry{
+                id: row.get(0).unwrap(),
+                request: row.get(1).unwrap(),
+                response: row.get(2).unwrap(),
+                modified_request: row.get(3).unwrap(),
+                new_response: row.get(4).unwrap(),
+                ssl: matches!(row.get(5).unwrap(), 1),
+                target: row.get(6).unwrap()
+            })
+        }).unwrap();
+
+        rows.filter(|x| x.is_ok())
+            .map(|x| x.unwrap())
+            .collect::<Vec<InspectorEntry>>()
+    }
+    
+    async fn count_inspector_entries(self, _: context::Context) -> usize {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = match conn.prepare("SELECT COUNT(*) FROM inspectors") {
             Ok(v) => v,
             Err(e) => panic!("ERROR: {:#?}", e),
         };
