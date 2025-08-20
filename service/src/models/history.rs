@@ -1,6 +1,5 @@
 use serde::{Serialize, Deserialize};
 
-
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct HistoryEntry {
     pub id: i64,
