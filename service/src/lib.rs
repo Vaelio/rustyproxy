@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 
 mod models;
 
-pub use crate::models::history::HistoryEntry;
+pub use crate::models::{history::HistoryEntry, inspector::InspectorEntry};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum OrderByEnum {
