@@ -26,6 +26,10 @@ pub trait ApiService {
     async fn get_history_entry(id: usize) -> Option<HistoryEntry>;
     async fn list_history_entries(page: usize, page_size: usize, order: OrderByEnum) -> Vec<HistoryEntry>;
     async fn count_history_entries() -> usize;
+    
+    async fn get_inspector_entry(id: usize) -> Option<InspectorEntry>;
+    async fn list_inspector_entries(page: usize, page_size: usize, order: OrderByEnum) -> Vec<InspectorEntry>;
+    async fn count_inspector_entries() -> usize;
 }
 
 /// Initializes an OpenTelemetry tracing subscriber with a OTLP backend.
